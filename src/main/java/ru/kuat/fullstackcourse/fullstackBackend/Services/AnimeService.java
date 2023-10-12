@@ -3,6 +3,7 @@ package ru.kuat.fullstackcourse.fullstackBackend.Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kuat.fullstackcourse.fullstackBackend.Exceptions.AnimeNotFoundException;
 import ru.kuat.fullstackcourse.fullstackBackend.Models.Anime;
 import ru.kuat.fullstackcourse.fullstackBackend.Repositories.AnimeRepository;
 
@@ -25,18 +26,22 @@ public class AnimeService {
 
     public Anime findOne(int id){
         Optional<Anime> foundAnime = animeRepository.findById(id);
-        return foundAnime.orElse(null);
+        return foundAnime.orElseThrow(() -> new AnimeNotFoundException("This title does not exist with id: " + id));
     }
 
     @Transactional
-    public void save(Anime anime){
-        animeRepository.save(anime);
+    public Anime createAnime(Anime anime){
+        return animeRepository.save(anime);
     }
 
     @Transactional
-    public void update(int id, Anime updated){
-        updated.setId(id);
-        animeRepository.save(updated);
+    public Anime update(int id, Anime updated){
+        Anime foundAnime = animeRepository.findById(id)
+                .orElseThrow(() -> new AnimeNotFoundException("This title does not exist with id: " + id));
+        foundAnime.setTitle(updated.getTitle());
+        foundAnime.setEpisodes(updated.getEpisodes());
+        foundAnime.setDateOfRelease(updated.getDateOfRelease());
+        return animeRepository.save(foundAnime);
     }
 
     @Transactional
